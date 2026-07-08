@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sound Board</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
+
+  :root{
+    --bg: #14171c;
+    --ink: #eceef0;
+    --dim: #8b929b;
+    --icon: #0d1420;
+
+    --blue: #2d6fd6;       --blue-dark: #1f4f9e;       --blue-bright: #4f8ef0;
+    --red: #d6362a;        --red-dark: #a3271e;        --red-bright: #f04a3c;
+    --orange: #d97706;     --orange-dark: #a3590a;     --orange-bright: #f5921f;
+    --gold: #c99a1f;       --gold-dark: #96721a;       --gold-bright: #e6b736;
+    --purple: #6d3fd1;     --purple-dark: #4f2ba0;     --purple-bright: #8a5cf0;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    margin:0; height:100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    max-width: 320px;
+  }
+
+  body{
+    display:flex;
+    flex-direction: row;
+    align-items:flex-start;
+    justify-content:center;
+    gap: 18px;
+    min-height:100vh;
+    padding: 22px 14px 30px;
+    overflow-x: hidden;
+  }
+
+  .layout{
+    display:flex;
+    flex-direction: row;
+    align-items:center;
+    gap: 18px;
+  }
+
+  .volume-vertical{
+    display:flex;
+    flex-direction: column;
+    align-items:center;
+    gap: 10px;
+    flex-shrink: 0;
+    padding-top: 4px;
+  }
+
+  .volume-track-wrap{
+    width: 32px;
+    height: 220px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  input[type="range"]#volSlider{
+    width: 220px;
+    height: 6px;
+    transform: rotate(-90deg);
+  }
+
+  .volume-caption{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--dim);
+    text-align:center;
+    line-height: 1.4;
+  }
+  .volume-caption span{ color: var(--ink); }
+
+  input[type="range"]{
+    -webkit-appearance: none;
+    border-radius: 3px;
+    background: #2a2f37;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--ink);
+    cursor: pointer;
+    border: 2px solid #2a2f37;
+  }
+  input[type="range"]::-moz-range-thumb{
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--ink);
+    cursor: pointer;
+    border: 2px solid #2a2f37;
+  }
+
+  .board{
+    display:flex;
+    flex-direction: column;
+    align-items:flex-start;
+    gap: 20px;
+  }
+
+  .sound-item{
+    display:flex;
+    flex-direction: row;
+    align-items:center;
+    gap: 10px;
+  }
+
+  .label-col{
+    width: 20px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink: 0;
+  }
+
+  .sound-name{
+    display:inline-block;
+    transform: rotate(-90deg);
+    white-space: nowrap;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--dim);
+  }
+
+  .sound-btn{
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition: transform 0.06s, box-shadow 0.06s;
+    flex-shrink: 0;
+  }
+  .sound-btn svg{ width: 40px; height: 40px; }
+
+  .sound-btn:active{ transform: translateY(6px); }
+  .sound-btn:focus-visible{ outline: 3px solid var(--ink); outline-offset: 4px; }
+
+  .sound-btn.pressed svg{ animation: honk 0.35s ease; }
+  @keyframes honk{
+    0%{ transform: scale(1); }
+    30%{ transform: scale(1.12) rotate(-4deg); }
+    60%{ transform: scale(0.96) rotate(3deg); }
+    100%{ transform: scale(1); }
+  }
+
+  .btn-blue{
+    background: radial-gradient(circle at 35% 30%, var(--blue-bright), var(--blue) 60%, var(--blue-dark) 100%);
+    box-shadow: 0 6px 0 var(--blue-dark), 0 9px 16px rgba(0,0,0,0.4);
+  }
+  .btn-blue:active{ box-shadow: 0 1px 0 var(--blue-dark), 0 4px 10px rgba(0,0,0,0.4); }
+
+  .btn-red{
+    background: radial-gradient(circle at 35% 30%, var(--red-bright), var(--red) 60%, var(--red-dark) 100%);
+    box-shadow: 0 6px 0 var(--red-dark), 0 9px 16px rgba(0,0,0,0.4);
+  }
+  .btn-red:active{ box-shadow: 0 1px 0 var(--red-dark), 0 4px 10px rgba(0,0,0,0.4); }
+
+  .btn-orange{
+    background: radial-gradient(circle at 35% 30%, var(--orange-bright), var(--orange) 60%, var(--orange-dark) 100%);
+    box-shadow: 0 6px 0 var(--orange-dark), 0 9px 16px rgba(0,0,0,0.4);
+  }
+  .btn-orange:active{ box-shadow: 0 1px 0 var(--orange-dark), 0 4px 10px rgba(0,0,0,0.4); }
+
+  .btn-gold{
+    background: radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold) 60%, var(--gold-dark) 100%);
+    box-shadow: 0 6px 0 var(--gold-dark), 0 9px 16px rgba(0,0,0,0.4);
+  }
+  .btn-gold:active{ box-shadow: 0 1px 0 var(--gold-dark), 0 4px 10px rgba(0,0,0,0.4); }
+
+  .btn-purple{
+    background: radial-gradient(circle at 35% 30%, var(--purple-bright), var(--purple) 60%, var(--purple-dark) 100%);
+    box-shadow: 0 6px 0 var(--purple-dark), 0 9px 16px rgba(0,0,0,0.4);
+  }
+  .btn-purple:active{ box-shadow: 0 1px 0 var(--purple-dark), 0 4px 10px rgba(0,0,0,0.4); }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+<div class="board">
+
+  <div class="sound-item">
+    <div class="label-col"><span class="sound-name">Sad trombone</span></div>
+    <button class="sound-btn btn-blue" data-sound="trombone" aria-label="Play sad trombone">
+      <svg viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9.5" stroke="var(--icon)" stroke-width="1.8"/>
+        <circle cx="8.7" cy="10" r="1.15" fill="var(--icon)"/>
+        <circle cx="15.3" cy="10" r="1.15" fill="var(--icon)"/>
+        <path d="M8.2 16.2C9 14.6 10.4 13.8 12 13.8C13.6 13.8 15 14.6 15.8 16.2" stroke="var(--icon)" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="sound-item">
+    <div class="label-col"><span class="sound-name">Airhorn</span></div>
+    <button class="sound-btn btn-red" data-sound="airhorn" aria-label="Play airhorn">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M3 10V14C3 14.5523 3.44772 15 4 15H6.5L11.2 18.6C11.8 19.06 12.7 18.63 12.7 17.87V6.13C12.7 5.37 11.8 4.94 11.2 5.4L6.5 9H4C3.44772 9 3 9.44772 3 10Z" fill="var(--icon)"/>
+        <path d="M16 9C17 10 17 14 16 15" stroke="var(--icon)" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M18.5 7C20.5 9.5 20.5 14.5 18.5 17" stroke="var(--icon)" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="sound-item">
+    <div class="label-col"><span class="sound-name">Buzzer</span></div>
+    <button class="sound-btn btn-orange" data-sound="buzzer" aria-label="Play buzzer">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M6 6L18 18M18 6L6 18" stroke="var(--icon)" stroke-width="2.4" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="sound-item">
+    <div class="label-col"><span class="sound-name">Bell</span></div>
+    <button class="sound-btn btn-gold" data-sound="bell" aria-label="Play bell">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M12 3.5C9.5 3.5 8 5.3 8 8V11.5C8 12.8 7.4 14 6.5 15H17.5C16.6 14 16 12.8 16 11.5V8C16 5.3 14.5 3.5 12 3.5Z" fill="var(--icon)"/>
+        <circle cx="12" cy="3" r="1.1" fill="var(--icon)"/>
+        <path d="M10.3 17C10.3 18 11 18.7 12 18.7C13 18.7 13.7 18 13.7 17" stroke="var(--icon)" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="sound-item">
+    <div class="label-col"><span class="sound-name">Siren</span></div>
+    <button class="sound-btn btn-purple" data-sound="siren" aria-label="Play siren">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M12 4L20.5 18.5H3.5L12 4Z" stroke="var(--icon)" stroke-width="1.8" stroke-linejoin="round"/>
+        <line x1="12" y1="10" x2="12" y2="14" stroke="var(--icon)" stroke-width="1.8" stroke-linecap="round"/>
+        <circle cx="12" cy="16.5" r="1" fill="var(--icon)"/>
+      </svg>
+    </button>
+  </div>
+
+</div>
+
+<div class="volume-vertical">
+  <div class="volume-track-wrap">
+    <input type="range" id="volSlider" min="0" max="100" value="70">
+  </div>
+  <div class="volume-caption">Volume<br><span id="volReadout">70</span>%</div>
+</div>
+
+</div>
+
+<script>
+(function(){
+  let audioCtx = null;
+  function getCtx(){
+    if(!audioCtx){ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    if(audioCtx.state === 'suspended'){ audioCtx.resume(); }
+    return audioCtx;
+  }
+
+  const slider = document.getElementById('volSlider');
+  const readout = document.getElementById('volReadout');
+  slider.addEventListener('input', function(){ readout.textContent = slider.value; });
+
+  function peakGain(){
+    return (parseInt(slider.value, 10) / 100) * 0.85;
+  }
+
+  function playTrombone(){
+    const ctx = getCtx(); const now = ctx.currentTime; const peak = peakGain();
+    if(peak <= 0) return;
+    const notes = [
+      { freq: 349.23, start: 0,    dur: 0.30 },
+      { freq: 329.63, start: 0.32, dur: 0.30 },
+      { freq: 311.13, start: 0.64, dur: 0.30 },
+      { freq: 293.66, start: 0.98, dur: 1.60, glide: true }
+    ];
+    notes.forEach(function(note){
+      const osc = ctx.createOscillator();
+      osc.type = 'sawtooth';
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 1100;
+      const gain = ctx.createGain();
+      const t0 = now + note.start;
+      osc.frequency.setValueAtTime(note.freq, t0);
+      let lfo, lfoGain;
+      if(note.glide){
+        osc.frequency.linearRampToValueAtTime(note.freq * 0.72, t0 + note.dur);
+        lfo = ctx.createOscillator();
+        lfo.frequency.value = 5.5;
+        lfoGain = ctx.createGain();
+        lfoGain.gain.value = 7;
+        lfo.connect(lfoGain); lfoGain.connect(osc.frequency);
+        lfo.start(t0); lfo.stop(t0 + note.dur);
+      }
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(peak, t0 + 0.04);
+      gain.gain.setValueAtTime(peak, t0 + note.dur * 0.55);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + note.dur);
+      osc.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+      osc.start(t0); osc.stop(t0 + note.dur + 0.05);
+    });
+  }
+
+  function playAirhorn(){
+    const ctx = getCtx(); const now = ctx.currentTime; const peak = peakGain();
+    if(peak <= 0) return;
+    const master = ctx.createGain();
+    master.gain.setValueAtTime(0.0001, now);
+    master.gain.exponentialRampToValueAtTime(peak, now + 0.05);
+    master.gain.setValueAtTime(peak, now + 0.9);
+    master.gain.exponentialRampToValueAtTime(0.0001, now + 1.25);
+    master.connect(ctx.destination);
+    [349.2, 174.6].forEach(function(f, i){
+      const osc = ctx.createOscillator();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(f * 0.85, now);
+      osc.frequency.linearRampToValueAtTime(f, now + 0.12);
+      const g = ctx.createGain();
+      g.gain.value = i === 0 ? 0.8 : 0.5;
+      const lfo = ctx.createOscillator();
+      lfo.frequency.value = 6;
+      const lfoGain = ctx.createGain();
+      lfoGain.gain.value = 2.5;
+      lfo.connect(lfoGain); lfoGain.connect(osc.frequency);
+      osc.connect(g); g.connect(master);
+      osc.start(now); lfo.start(now);
+      osc.stop(now + 1.3); lfo.stop(now + 1.3);
+    });
+  }
+
+  function playBuzzer(){
+    const ctx = getCtx(); const now = ctx.currentTime; const peak = peakGain();
+    if(peak <= 0) return;
+    const dur = 1.1;
+    const osc = ctx.createOscillator();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(110, now);
+    const trem = ctx.createOscillator();
+    trem.frequency.value = 28;
+    const tremGain = ctx.createGain();
+    tremGain.gain.value = 0.15;
+    trem.connect(tremGain);
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(peak, now + 0.03);
+    gain.gain.setValueAtTime(peak, now + dur * 0.85);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    tremGain.connect(gain.gain);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(now); trem.start(now);
+    osc.stop(now + dur + 0.05); trem.stop(now + dur + 0.05);
+  }
+
+  function playBell(){
+    const ctx = getCtx(); const now = ctx.currentTime; const peak = peakGain();
+    if(peak <= 0) return;
+    const dings = [0, 0.28, 0.56];
+    dings.forEach(function(start){
+      const t0 = now + start;
+      [1046.5, 1568.0].forEach(function(freq, i){
+        const osc = ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        const gain = ctx.createGain();
+        const level = i === 0 ? peak : peak * 0.35;
+        gain.gain.setValueAtTime(level, t0);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.5);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(t0); osc.stop(t0 + 0.55);
+      });
+    });
+  }
+
+  function playSiren(){
+    const ctx = getCtx(); const now = ctx.currentTime; const peak = peakGain();
+    if(peak <= 0) return;
+    const dur = 2.2;
+    const osc = ctx.createOscillator();
+    osc.type = 'sawtooth';
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(peak, now + 0.05);
+    gain.gain.setValueAtTime(peak, now + dur - 0.15);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    const sweeps = 3;
+    const sweepDur = dur / sweeps;
+    for(let i = 0; i < sweeps; i++){
+      const t0 = now + i * sweepDur;
+      osc.frequency.setValueAtTime(500, t0);
+      osc.frequency.linearRampToValueAtTime(900, t0 + sweepDur / 2);
+      osc.frequency.linearRampToValueAtTime(500, t0 + sweepDur);
+    }
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(now); osc.stop(now + dur + 0.05);
+  }
+
+  const players = {
+    trombone: playTrombone,
+    airhorn: playAirhorn,
+    buzzer: playBuzzer,
+    bell: playBell,
+    siren: playSiren
+  };
+
+  document.querySelectorAll('.sound-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      getCtx();
+      const fn = players[btn.getAttribute('data-sound')];
+      if(fn) fn();
+      btn.classList.remove('pressed');
+      void btn.offsetWidth;
+      btn.classList.add('pressed');
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
